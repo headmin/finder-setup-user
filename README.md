@@ -1,6 +1,7 @@
 # finder-setup-user
 
 - A payload free package for macOS, apply initial Finder settings via commands, executed as the currently logged in user.
+- Package build with - https://github.com/munki/munki-pkg
 
 ## References to look up:
 
