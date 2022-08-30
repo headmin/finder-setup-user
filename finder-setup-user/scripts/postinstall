@@ -1,0 +1,80 @@
+#!/bin/zsh
+#
+# Copyright 2022-Present.
+# Old but golden - the rational to finder adjustments is well comprehended here by Kevin M. Cox - https://www.kevinmcox.com/2022/07/change-even-more-finder-options-using-defaults/
+# I have adopted parts of the code from my dear friend Armin Briegel:  https://scriptingosx.com/2020/08/running-a-command-as-another-user/
+#
+# Licensed under the Apache License, Version 2.0 (the 'License');
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an 'AS IS' BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+# variable and function declarations
+export PATH=/usr/bin:/bin:/usr/sbin:/sbin
+
+# get the currently logged in user
+currentUser=$( echo "show State:/Users/ConsoleUser" | scutil | awk '/Name :/ { print $3 }' )
+
+# global check if a user is logged in
+if [ -z "$currentUser" -o "$currentUser" = "loginwindow" ]; then
+  echo "no user logged in, cannot proceed"
+  exit 1
+fi
+# now we hav validated that a user is logged in
+
+# get the current user's UID
+uid=$(id -u "$currentUser")
+
+# function to run a command as the current user
+runAsUser() {  
+  if [ "$currentUser" != "loginwindow" ]; then
+    launchctl asuser "$uid" sudo -u "$currentUser" "$@"
+  else
+    echo "no user logged in"
+    # uncomment the exit command
+    # to make the function exit with an error when no user is logged in
+    # exit 1
+  fi
+}
+
+# set a preference, run command as user
+
+## Show Path Bar
+runAsUser /usr/bin/defaults write com.apple.finder ShowPathbar -bool true
+## Show Status Bar
+runAsUser /usr/bin/defaults write com.apple.finder ShowStatusBar -bool true
+## Set Default Finder Location to Home Folder
+runAsUser /usr/bin/defaults write com.apple.finder NewWindowTarget -string "PfLo"
+runAsUser /usr/bin/defaults write com.apple.finder NewWindowTargetPath -string "file:///Users/${currentUser}"
+## Use list view in all Finder windows by default
+runAsUser /usr/bin/defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+## Use current directory as default search scope in Finder
+runAsUser /usr/bin/defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
+## Uncheck the "Reopen windows when logging back in" logout checkbox
+runAsUser /usr/bin/defaults write com.apple.loginwindow TALLogoutSavesState -bool false
+runAsUser /usr/bin/defaults write com.apple.loginwindow LoginwindowLaunchesRelaunchApps -bool false
+## Expand save panels by default
+runAsUser /usr/bin/defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
+runAsUser /usr/bin/defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
+## Default to local files instead of iCloud
+runAsUser /usr/bin/defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
+
+
+# The following elements are essential for an overall secure workplace
+## Set Terminal Secure Keyboard Entry
+runAsUser /usr/bin/defaults write com.apple.terminal SecureKeyboardEntry -bool true
+
+
+# The following items are optional and a matter of personal opinion, but will help to ensure a smooth and trouble-free experience.
+## Disable smart dashes - a more durable setting across all departments
+runAsUser /usr/bin/defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false 
+## Disable smart quotes - a more durable setting across all departments
+runAsUser /usr/bin/defaults  write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false

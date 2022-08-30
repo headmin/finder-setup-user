@@ -1,0 +1,10 @@
+{
+    "ownership": "recommended",
+    "suppress_bundle_relocation": true,
+    "identifier": "com.github.macadmins.findersetup.init",
+    "postinstall_action": "none",
+    "distribution_style": true,
+    "version": "1.0",
+    "name": "FinderSetup_UserInit.1.0.pkg",
+    "install_location": "/"
+}
